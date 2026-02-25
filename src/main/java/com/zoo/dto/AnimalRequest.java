@@ -1,4 +1,4 @@
-package dto;
+package com.zoo.dto;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;

@@ -1,6 +1,6 @@
-package dto;
+package com.zoo.dto;
 
-import model.Animal;
+import com.zoo.model.Animal;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -11,8 +11,6 @@ public class AnimalResponse {
     private String name;
     private String species;
     private Integer age;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 
     public static AnimalResponse fromEntity(Animal animal) {
         AnimalResponse response = new AnimalResponse();
@@ -20,8 +18,6 @@ public class AnimalResponse {
         response.setName(animal.getName());
         response.setSpecies(animal.getSpecies());
         response.setAge(animal.getAge());
-        response.setCreatedAt(animal.getCreatedAt());
-        response.setUpdatedAt(animal.getUpdatedAt());
         return response;
     }
 }

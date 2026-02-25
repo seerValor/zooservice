@@ -1,13 +1,18 @@
-package controller;
+package com.zoo.controller;
 
-import dto.AnimalRequest;
-import dto.AnimalResponse;
-import service.AnimalService;
+import com.zoo.dto.AnimalRequest;
+import com.zoo.dto.AnimalResponse;
+import com.zoo.service.AnimalService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+
 
 import java.util.List;
 
@@ -107,5 +112,66 @@ public class AnimalController {
     public ResponseEntity<Void> deleteAllAnimals() {
         animalService.deleteAllAnimals();
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/export/json")
+    public ResponseEntity<String> exportAnimalsToJson() {
+        String filePath = animalService.saveAllAnimalsToJson();
+        return ResponseEntity.ok("Животные экспортированы в файл: " + filePath);
+    }
+
+    @GetMapping("/export/csv")
+    public ResponseEntity<String> exportAnimalsToCsv() {
+        String filePath = animalService.saveAllAnimalsToCsv();
+        return ResponseEntity.ok("Животные экспортированы в файл: " + filePath);
+    }
+
+    @GetMapping("/export/txt")
+    public ResponseEntity<String> exportAnimalsToTxt() {
+        String filePath = animalService.saveAllAnimalsToTxt();
+        return ResponseEntity.ok("Животные экспортированы в файл: " + filePath);
+    }
+
+    @GetMapping("/export")
+    public ResponseEntity<List<String>> getFilesList() {
+        return ResponseEntity.ok(animalService.getSavedFiles());
+    }
+
+    @GetMapping("/export/download/{filename:.+}")
+    public ResponseEntity<Resource> downloadFile(@PathVariable String filename) {
+        // Проверяем, существует ли файл
+        if (!animalService.fileExists(filename)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        try {
+            // Загружаем файл как ресурс
+            Resource resource = animalService.getFileAsResource(filename);
+
+            // Определяем Content-Type на основе расширения
+            String contentType = determineContentType(filename);
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(contentType))
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=\"" + resource.getFilename() + "\"")
+                    .header(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION)
+                    .body(resource);
+
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    private String determineContentType(String filename) {
+        if (filename.endsWith(".json")) {
+            return "application/json";
+        } else if (filename.endsWith(".csv")) {
+            return "text/csv";
+        } else if (filename.endsWith(".txt")) {
+            return "text/plain";
+        } else {
+            return "application/octet-stream";
+        }
     }
 }

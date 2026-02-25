@@ -1,14 +1,16 @@
-package service;
+package com.zoo.service;
 
-import dto.AnimalRequest;
-import dto.AnimalResponse;
-import model.Animal;
-import repository.AnimalRepository;
+import com.zoo.service.FileStorageService;
+import com.zoo.dto.AnimalRequest;
+import com.zoo.dto.AnimalResponse;
+import com.zoo.model.Animal;
+import com.zoo.repository.AnimalRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.core.io.Resource;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -20,6 +22,7 @@ import java.util.stream.Collectors;
 public class AnimalService {
 
     private final AnimalRepository animalRepository;
+    private final FileStorageService fileStorageService;
 
     @Transactional
     public AnimalResponse addAnimal(AnimalRequest request) {
@@ -44,6 +47,33 @@ public class AnimalService {
                 .collect(Collectors.toList());
     }
 
+    public String saveAllAnimalsToJson() {
+        List<Animal> animals = animalRepository.findAll();
+        return fileStorageService.saveAnimalsToJson(animals);
+    }
+
+    public String saveAllAnimalsToCsv() {
+        List<Animal> animals = animalRepository.findAll();
+        return fileStorageService.saveAnimalsToCsv(animals);
+    }
+
+    public String saveAllAnimalsToTxt() {
+        List<Animal> animals = animalRepository.findAll();
+        return fileStorageService.saveAnimalsToTxt(animals);
+    }
+
+    public List<String> getSavedFiles() {
+        return fileStorageService.getSavedFiles();
+    }
+
+    public Resource getFileAsResource(String filename) {
+        return fileStorageService.loadFileAsResource(filename);
+    }
+
+    public boolean fileExists(String filename) {
+        return fileStorageService.fileExists(filename);
+    }
+
     public AnimalResponse getAnimalById(Long id) {
         log.info("Поиск животного по ID: {}", id);
         Animal animal = animalRepository.findById(id)
@@ -53,7 +83,7 @@ public class AnimalService {
 
     public List<AnimalResponse> getAnimalsBySpecies(String species) {
         log.info("Поиск животных по виду: {}", species);
-        return animalRepository.findBySpecies(species)
+        return animalRepository.findBySpeciesContainingIgnoreCase(species)
                 .stream()
                 .map(AnimalResponse::fromEntity)
                 .collect(Collectors.toList());

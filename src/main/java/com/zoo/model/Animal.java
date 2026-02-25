@@ -1,4 +1,4 @@
-package model;
+package com.zoo.model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
